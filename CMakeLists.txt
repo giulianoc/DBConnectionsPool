@@ -39,4 +39,7 @@ set(DBConnectionsPool_VERSION_MAJOR 1)
 set(DBConnectionsPool_VERSION_MINOR 0)
 
 add_subdirectory(src)
+add_subdirectory(examples/connectorCppAPI)
+add_subdirectory(examples/dbConnectionPool)
+add_subdirectory(examples/dbConnectionPool_postgres)
 
