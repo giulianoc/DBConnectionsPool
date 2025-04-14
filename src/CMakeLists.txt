@@ -26,5 +26,9 @@ SET (HEADERS
 	PostgresConnection.h
 )
 
-install (FILES ${HEADERS} DESTINATION include)
+if(ZORAC)
+else()
+	install (FILES ${HEADERS} DESTINATION include)
+endif()
+
 
