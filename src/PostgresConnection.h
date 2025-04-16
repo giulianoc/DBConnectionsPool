@@ -314,6 +314,7 @@ class PostgresTransaction
 
   public:
 	unique_ptr<pqxx::transaction_base> transaction;
+	shared_ptr<PostgresConnection> connection;
 
 	PostgresTransaction(shared_ptr<PostgresConnection> connection, bool work)
 	{
@@ -326,6 +327,7 @@ class PostgresTransaction
 #endif
 		_abort = false;
 
+		this->connection = connection;
 		if (work)
 			transaction = make_unique<pqxx::work>(*(connection->_sqlConnection));
 		else
