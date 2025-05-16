@@ -1,10 +1,10 @@
 /*
- Copyright (C) Giuliano Catrambone (giuliano.catrambone@catrasoftware.it)
+ Copyright (C) Giuliano Catrambone (giulianocatrambone@gmail.com)
 
- This program is free software; you can redistribute it and/or 
- modify it under the terms of the GNU General Public License 
- as published by the Free Software Foundation; either 
- version 2 of the License, or (at your option) any later 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later
  version.
 
  This program is distributed in the hope that it will be useful,
@@ -27,17 +27,15 @@ using namespace std;
 
 #include "PostgresConnection.h"
 
-
-int main (int iArgc, char *pArgv [])
+int main(int iArgc, char *pArgv[])
 
 {
 
 	if (iArgc != 8)
 	{
-		cout << "wrong args number: " << iArgc
-			<< ", usage: "
-			<< pArgv[0]
-			<< " \"tcp://rsis-cp-wedep1.media.int:3306\" u_vedatest \"~Kpq6Mll]Y\" vedatest \"select count(*) from MMS_TestConnection\" 1 100" << endl;
+		cout << "wrong args number: " << iArgc << ", usage: " << pArgv[0]
+			 << " \"tcp://rsis-cp-wedep1.media.int:3306\" u_vedatest \"~Kpq6Mll]Y\" vedatest \"select count(*) from MMS_TestConnection\" 1 100"
+			 << endl;
 
 		return 1;
 	}
@@ -50,17 +48,11 @@ int main (int iArgc, char *pArgv [])
 	int dbPoolSize = atol(pArgv[6]);
 	int iterations = atol(pArgv[7]);
 
-	cout << pArgv[0]
-		<< ", dbServer: " + dbServer
-		<< ", dbUsername: " + dbUsername
-		<< ", dbPassword: " + dbPassword
-		<< ", dbName: " + dbName
-		<< ", selectTestingConnection: " + selectTestingConnection
-		<< ", dbPoolSize: " + to_string(dbPoolSize)
-		<< ", iterations: " + to_string(iterations)
-		<< endl;
+	cout << pArgv[0] << ", dbServer: " + dbServer << ", dbUsername: " + dbUsername << ", dbPassword: " + dbPassword << ", dbName: " + dbName
+		 << ", selectTestingConnection: " + selectTestingConnection << ", dbPoolSize: " + to_string(dbPoolSize)
+		 << ", iterations: " + to_string(iterations) << endl;
 
-	shared_ptr<PostgresConnectionFactory>  postgrSQLConnectionFactory;
+	shared_ptr<PostgresConnectionFactory> postgrSQLConnectionFactory;
 	shared_ptr<DBConnectionPool<PostgresConnection>> connectionPool;
 	shared_ptr<PostgresConnection> conn = nullptr;
 	try
@@ -69,14 +61,13 @@ int main (int iArgc, char *pArgv [])
 		string defaultCharacterSet = "utf8";
 
 		cout << "postgresConnectionFactory..." << endl;
-		postgrSQLConnectionFactory = 
-			make_shared<PostgresConnectionFactory>(dbServer, dbUsername, 5432, dbPassword, dbName,
-			/* reconnect, defaultCharacterSet,*/ selectTestingConnection);
+		postgrSQLConnectionFactory = make_shared<PostgresConnectionFactory>(
+			dbServer, dbUsername, 5432, dbPassword, dbName,
+			/* reconnect, defaultCharacterSet,*/ selectTestingConnection
+		);
 
 		cout << "connectionPool..." << endl;
-		connectionPool =
-			make_shared<DBConnectionPool<PostgresConnection>>(
-			dbPoolSize, postgrSQLConnectionFactory);
+		connectionPool = make_shared<DBConnectionPool<PostgresConnection>>(dbPoolSize, postgrSQLConnectionFactory);
 
 		for (int index = 0; index < iterations; index++)
 		{
@@ -84,17 +75,15 @@ int main (int iArgc, char *pArgv [])
 
 			try
 			{
-				conn = connectionPool->borrow();	
+				conn = connectionPool->borrow();
 				connectionPool->unborrow(conn);
 				conn = nullptr;
 			}
-			catch(pqxx::sql_error const &se)
+			catch (pqxx::sql_error const &se)
 			{
 				string exceptionMessage(se.what() + string(", query: ") + se.query());
- 
-				cerr << string("SQL borrow/unborrow exception")
-					+ ", exceptionMessage: " + exceptionMessage
-					<< endl;
+
+				cerr << string("SQL borrow/unborrow exception") + ", exceptionMessage: " + exceptionMessage << endl;
 
 				if (conn != nullptr)
 				{
@@ -102,13 +91,11 @@ int main (int iArgc, char *pArgv [])
 					conn = nullptr;
 				}
 			}
-			catch(runtime_error& e)
+			catch (runtime_error &e)
 			{
 				string exceptionMessage(e.what());
- 
-				cerr << string("SQL borrow/unborrow exception")
-					+ ", exceptionMessage: " + exceptionMessage
-					<< endl;
+
+				cerr << string("SQL borrow/unborrow exception") + ", exceptionMessage: " + exceptionMessage << endl;
 
 				if (conn != nullptr)
 				{
@@ -116,13 +103,11 @@ int main (int iArgc, char *pArgv [])
 					conn = nullptr;
 				}
 			}
-			catch(exception& e)
+			catch (exception &e)
 			{
 				string exceptionMessage(e.what());
- 
-				cerr << string("SQL borrow/unborrow exception")
-					+ ", exceptionMessage: " + exceptionMessage
-					<< endl;
+
+				cerr << string("SQL borrow/unborrow exception") + ", exceptionMessage: " + exceptionMessage << endl;
 
 				if (conn != nullptr)
 				{
@@ -132,52 +117,48 @@ int main (int iArgc, char *pArgv [])
 			}
 		}
 	}
-	catch(pqxx::sql_error const &se)
+	catch (pqxx::sql_error const &se)
 	{
 		string exceptionMessage(se.what() + string(", query: ") + se.query());
 
-		cerr << string("SQL exception")
-			+ ", exceptionMessage: " + exceptionMessage
-			+ ", conn: " + (conn != nullptr ? to_string(conn->getConnectionId()) : "-1")
-			<< endl;
+		cerr << string("SQL exception") + ", exceptionMessage: " + exceptionMessage +
+					", conn: " + (conn != nullptr ? to_string(conn->getConnectionId()) : "-1")
+			 << endl;
 
 		if (conn != nullptr)
-        {
-            connectionPool->unborrow(conn);
-            conn = nullptr;
-        }
+		{
+			connectionPool->unborrow(conn);
+			conn = nullptr;
+		}
 	}
-	catch(runtime_error& e)
+	catch (runtime_error &e)
 	{
 		string exceptionMessage(e.what());
 
-		cerr << string("SQL exception")
-			+ ", exceptionMessage: " + exceptionMessage
-			+ ", conn: " + (conn != nullptr ? to_string(conn->getConnectionId()) : "-1")
-			<< endl;
+		cerr << string("SQL exception") + ", exceptionMessage: " + exceptionMessage +
+					", conn: " + (conn != nullptr ? to_string(conn->getConnectionId()) : "-1")
+			 << endl;
 
 		if (conn != nullptr)
-        {
-            connectionPool->unborrow(conn);
-            conn = nullptr;
-        }
+		{
+			connectionPool->unborrow(conn);
+			conn = nullptr;
+		}
 	}
-	catch(exception& e)
+	catch (exception &e)
 	{
 		string exceptionMessage(e.what());
 
-		cerr << string("SQL exception")
-			+ ", exceptionMessage: " + exceptionMessage
-			+ ", conn: " + (conn != nullptr ? to_string(conn->getConnectionId()) : "-1")
-		<< endl;
+		cerr << string("SQL exception") + ", exceptionMessage: " + exceptionMessage +
+					", conn: " + (conn != nullptr ? to_string(conn->getConnectionId()) : "-1")
+			 << endl;
 
 		if (conn != nullptr)
-        {
-            connectionPool->unborrow(conn);
-            conn = nullptr;
-        }
+		{
+			connectionPool->unborrow(conn);
+			conn = nullptr;
+		}
 	}
 
 	return 0;
 }
-

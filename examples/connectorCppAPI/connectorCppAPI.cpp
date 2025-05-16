@@ -1,11 +1,11 @@
 /*
  *
- Copyright (C) Giuliano Catrambone (giuliano.catrambone@catrasoftware.it)
+ Copyright (C) Giuliano Catrambone (giulianocatrambone@gmail.com)
 
- This program is free software; you can redistribute it and/or 
- modify it under the terms of the GNU General Public License 
- as published by the Free Software Foundation; either 
- version 2 of the License, or (at your option) any later 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later
  version.
 
  This program is distributed in the hope that it will be useful,
@@ -22,8 +22,8 @@
  with the authors.
 */
 
-#include <stdlib.h>
 #include <iostream>
+#include <stdlib.h>
 
 /*
   Include directly the different
@@ -39,46 +39,49 @@
 
 using namespace std;
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-cout << endl;
-cout << "Running 'SELECT 'Hello World!' AS _message" << endl;
+	cout << endl;
+	cout << "Running 'SELECT 'Hello World!' AS _message" << endl;
 
-try {
-  sql::Driver *driver;
-  sql::Connection *con;
-  sql::Statement *stmt;
-  sql::ResultSet *res;
+	try
+	{
+		sql::Driver *driver;
+		sql::Connection *con;
+		sql::Statement *stmt;
+		sql::ResultSet *res;
 
-  /* Create a connection */
-  driver = get_driver_instance();
-  con = driver->connect("tcp://rsis-cp-wedep1.media.int:3306", "u_vedatest", "~Kpq6Mll]Y");
-  /* Connect to the MySQL test database */
-  con->setSchema("vedatest");
+		/* Create a connection */
+		driver = get_driver_instance();
+		con = driver->connect("tcp://rsis-cp-wedep1.media.int:3306", "u_vedatest", "~Kpq6Mll]Y");
+		/* Connect to the MySQL test database */
+		con->setSchema("vedatest");
 
-  stmt = con->createStatement();
-  res = stmt->executeQuery("SELECT 'Hello World!' AS _message");
-  while (res->next()) {
-    cout << "\t... MySQL replies: ";
-    /* Access column data by alias or column name */
-    cout << res->getString("_message") << endl;
-    cout << "\t... MySQL says it again: ";
-    /* Access column data by numeric offset, 1 is the first column */
-    cout << res->getString(1) << endl;
-  }
-  delete res;
-  delete stmt;
-  delete con;
+		stmt = con->createStatement();
+		res = stmt->executeQuery("SELECT 'Hello World!' AS _message");
+		while (res->next())
+		{
+			cout << "\t... MySQL replies: ";
+			/* Access column data by alias or column name */
+			cout << res->getString("_message") << endl;
+			cout << "\t... MySQL says it again: ";
+			/* Access column data by numeric offset, 1 is the first column */
+			cout << res->getString(1) << endl;
+		}
+		delete res;
+		delete stmt;
+		delete con;
+	}
+	catch (sql::SQLException &e)
+	{
+		cout << "# ERR: SQLException in " << __FILE__;
+		cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+		cout << "# ERR: " << e.what();
+		cout << " (MySQL error code: " << e.getErrorCode();
+		cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+	}
 
-} catch (sql::SQLException &e) {
-  cout << "# ERR: SQLException in " << __FILE__;
-  cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
-  cout << "# ERR: " << e.what();
-  cout << " (MySQL error code: " << e.getErrorCode();
-  cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-}
+	cout << endl;
 
-cout << endl;
-
-return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
