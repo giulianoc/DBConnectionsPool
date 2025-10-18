@@ -26,7 +26,7 @@ class PostgresConnection : public DBConnection
 
 	PostgresConnection(string selectTestingConnection, int connectionId) : DBConnection(selectTestingConnection, connectionId) {}
 
-	~PostgresConnection()
+	~PostgresConnection() override
 	{
 #ifdef DBCONNECTIONSPOOL_LOG
 		SPDLOG_TRACE(
@@ -37,7 +37,7 @@ class PostgresConnection : public DBConnection
 #endif
 	};
 
-	virtual bool connectionValid()
+	bool connectionValid() override
 	{
 		bool connectionValid = true;
 
@@ -54,7 +54,7 @@ class PostgresConnection : public DBConnection
 		}
 		else
 		{
-			if (_selectTestingConnection != "")
+			if (!_selectTestingConnection.empty())
 			{
 				try
 				{
@@ -142,7 +142,7 @@ class PostgresConnectionFactory : public DBConnectionFactory
 
   public:
 	PostgresConnectionFactory(
-		string dbServer, string dbUsername, int dbPort, string dbPassword, string dbName,
+		const string &dbServer, const string &dbUsername, int dbPort, const string &dbPassword, const string &dbName,
 		/* bool reconnect, string defaultCharacterSet, */
 		string selectTestingConnection
 	)

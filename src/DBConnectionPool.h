@@ -36,14 +36,14 @@ class DBConnection
 					_connectionId				= -1;
 			};
 	*/
-	DBConnection(string selectTestingConnection, int connectionId)
+	DBConnection(const string &selectTestingConnection, int connectionId)
 	{
 		_selectTestingConnection = selectTestingConnection;
 		_connectionId = connectionId;
 	};
-	virtual ~DBConnection() {};
+	virtual ~DBConnection() = default;
 
-	int getConnectionId() { return _connectionId; }
+	int getConnectionId() const { return _connectionId; }
 
 	virtual bool connectionValid() { return true; };
 };
@@ -52,6 +52,7 @@ class DBConnectionFactory
 {
 
   public:
+	virtual ~DBConnectionFactory() = default;
 	virtual shared_ptr<DBConnection> create(int connectionId) = 0;
 };
 
@@ -72,7 +73,7 @@ template <class T> class DBConnectionPool
 	mutex _connectionPoolMutex;
 
   public:
-	DBConnectionPool(size_t poolSize, shared_ptr<DBConnectionFactory> factory)
+	DBConnectionPool(size_t poolSize, const shared_ptr<DBConnectionFactory> &factory)
 	{
 		_poolSize = poolSize;
 		_factory = factory;
@@ -96,7 +97,7 @@ template <class T> class DBConnectionPool
 		}
 	};
 
-	~DBConnectionPool() {};
+	~DBConnectionPool() = default;
 
 	/**
 	 * Borrow
@@ -125,7 +126,7 @@ template <class T> class DBConnectionPool
 #endif
 
 		// Check for a free connection
-		if (_connectionPool.size() == 0)
+		if (_connectionPool.empty())
 		{
 #ifdef DBCONNECTIONPOOL_LOG
 			SPDLOG_TRACE("_connectionPool.size is 0, look to recover a borrowed one");
