@@ -22,9 +22,11 @@
 
 SET (HEADERS
 	DBConnectionPool.h
-	MySQLConnection.h
 	PostgresConnection.h
 )
+if(DBCONNECTION_MYSQL)
+	list(APPEND HEADERS MySQLConnection.h)
+endif()
 
 if(ZORAC)
 else()
