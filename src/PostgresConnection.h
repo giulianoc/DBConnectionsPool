@@ -1,5 +1,4 @@
-#ifndef PostgresConnection_h
-#define PostgresConnection_h
+#pragma once
 
 #include "DBConnectionPool.h"
 #include <format>
@@ -10,13 +9,11 @@
 
 // #define DBCONNECTIONSPOOL_LOG
 
-using namespace pqxx;
-
 class PostgresConnection : public DBConnection
 {
 
   public:
-	shared_ptr<connection> _sqlConnection;
+	std::shared_ptr<pqxx::connection> _sqlConnection;
 
 	/*
 					PostgresConnection(): DBConnection()
@@ -24,7 +21,7 @@ class PostgresConnection : public DBConnection
 					}
 	*/
 
-	PostgresConnection(string selectTestingConnection, int connectionId) : DBConnection(selectTestingConnection, connectionId) {}
+	PostgresConnection(std::string selectTestingConnection, int connectionId) : DBConnection(selectTestingConnection, connectionId) {}
 
 	~PostgresConnection() override
 	{
@@ -66,14 +63,14 @@ class PostgresConnection : public DBConnection
 						_connectionId, _selectTestingConnection
 					);
 #endif
-					nontransaction trans{*_sqlConnection};
+					pqxx::nontransaction trans{*_sqlConnection};
 
 					trans.exec(_selectTestingConnection);
 
 					// This doesn't really do anything
 					trans.commit();
 				}
-				catch (sql_error const &e)
+				catch (pqxx::sql_error const &e)
 				{
 #ifdef DBCONNECTIONSPOOL_LOG
 					SPDLOG_ERROR(
@@ -88,7 +85,7 @@ class PostgresConnection : public DBConnection
 
 					connectionValid = false;
 				}
-				catch (broken_connection const &e)
+				catch (pqxx::broken_connection const &e)
 				{
 #ifdef DBCONNECTIONSPOOL_LOG
 					SPDLOG_WARN(
@@ -105,7 +102,7 @@ class PostgresConnection : public DBConnection
 
 					connectionValid = false;
 				}
-				catch (exception &e)
+				catch (std::exception &e)
 				{
 #ifdef DBCONNECTIONSPOOL_LOG
 					SPDLOG_WARN(
@@ -131,20 +128,20 @@ class PostgresConnectionFactory : public DBConnectionFactory
 {
 
   private:
-	string _dbServer;
-	string _dbUsername;
+	std::string _dbServer;
+	std::string _dbUsername;
 	int _dbPort;
-	string _dbPassword;
-	string _dbName;
+	std::string _dbPassword;
+	std::string _dbName;
 	// bool _reconnect;
-	// string _defaultCharacterSet;
-	string _selectTestingConnection;
+	// std::string _defaultCharacterSet;
+	std::string _selectTestingConnection;
 
   public:
 	PostgresConnectionFactory(
-		const string &dbServer, const string &dbUsername, int dbPort, const string &dbPassword, const string &dbName,
-		/* bool reconnect, string defaultCharacterSet, */
-		string selectTestingConnection
+		const std::string &dbServer, const std::string &dbUsername, int dbPort, const std::string &dbPassword, const std::string &dbName,
+		/* bool reconnect, std::string defaultCharacterSet, */
+		std::string selectTestingConnection
 	)
 	{
 		_dbServer = dbServer;
@@ -158,15 +155,15 @@ class PostgresConnectionFactory : public DBConnectionFactory
 	};
 
 	// Any exceptions thrown here should be caught elsewhere
-	shared_ptr<DBConnection> create(int connectionId)
+	std::shared_ptr<DBConnection> create(int connectionId)
 	{
 		try
 		{
 			// reconnect? character set?
-			// string connectionDetails = "dbname=" + _dbName + " user=" + _dbUsername
+			// std::string connectionDetails = "dbname=" + _dbName + " user=" + _dbUsername
 			// 	+ " password=" + _dbPassword + " hostaddr=" + _dbServer + "
 			// port=5432";
-			string connectionDetails = std::format("postgresql://{}:{}@{}:{}/{}", _dbUsername, _dbPassword, _dbServer, _dbPort, _dbName);
+			std::string connectionDetails = std::format("postgresql://{}:{}@{}:{}/{}", _dbUsername, _dbPassword, _dbServer, _dbPort, _dbName);
 #ifdef DBCONNECTIONSPOOL_LOG
 			SPDLOG_TRACE(
 				"sql connection creating..."
@@ -179,16 +176,16 @@ class PostgresConnectionFactory : public DBConnectionFactory
 			);
 			// connectionDetails);
 #endif
-			shared_ptr<connection> conn = make_shared<connection>(connectionDetails);
+			std::shared_ptr<pqxx::connection> conn = make_shared<pqxx::connection>(connectionDetails);
 
-			shared_ptr<PostgresConnection> postgresConnection = make_shared<PostgresConnection>(_selectTestingConnection, connectionId);
+			std::shared_ptr<PostgresConnection> postgresConnection = make_shared<PostgresConnection>(_selectTestingConnection, connectionId);
 			postgresConnection->_sqlConnection = conn;
 
 			bool connectionValid = postgresConnection->connectionValid();
 			if (!connectionValid)
 			{
 #ifdef DBCONNECTIONSPOOL_LOG
-				string errorMessage = std::format(
+				std::string errorMessage = std::format(
 					"just created sql connection is not valid"
 					", _connectionId: {}"
 					", _dbServer: {}"
@@ -211,11 +208,11 @@ class PostgresConnectionFactory : public DBConnectionFactory
 				postgresConnection->getConnectionId(), _dbServer, _dbUsername, _dbName
 			);
 #endif
-			postgresConnection->_lastActivity = chrono::system_clock::now();
+			postgresConnection->_lastActivity = std::chrono::system_clock::now();
 
 			return static_pointer_cast<DBConnection>(postgresConnection);
 		}
-		catch (exception &e)
+		catch (std::exception &e)
 		{
 #ifdef DBCONNECTIONSPOOL_LOG
 			SPDLOG_ERROR(
@@ -233,14 +230,14 @@ class PostgresConnectionFactory : public DBConnectionFactory
 class PostgresConnTrans
 {
   private:
-	shared_ptr<DBConnectionPool<PostgresConnection>> _connectionsPool;
+	std::shared_ptr<DBConnectionPool<PostgresConnection>> _connectionsPool;
 	bool _abort;
 
   public:
-	unique_ptr<pqxx::transaction_base> transaction;
-	shared_ptr<PostgresConnection> connection;
+	std::unique_ptr<pqxx::transaction_base> transaction;
+	std::shared_ptr<PostgresConnection> connection;
 
-	PostgresConnTrans(shared_ptr<DBConnectionPool<PostgresConnection>> connectionsPool, bool work)
+	PostgresConnTrans(std::shared_ptr<DBConnectionPool<PostgresConnection>> connectionsPool, bool work)
 	{
 #ifdef DBCONNECTIONSPOOL_LOG
 		SPDLOG_DEBUG(
@@ -255,11 +252,11 @@ class PostgresConnTrans
 		try
 		{
 			if (work)
-				transaction = make_unique<pqxx::work>(*(connection->_sqlConnection));
+				transaction = std::make_unique<pqxx::work>(*(connection->_sqlConnection));
 			else
-				transaction = make_unique<pqxx::nontransaction>(*(connection->_sqlConnection));
+				transaction = std::make_unique<pqxx::nontransaction>(*(connection->_sqlConnection));
 		}
-		catch (exception &e)
+		catch (std::exception &e)
 		{
 #ifdef DBCONNECTIONSPOOL_LOG
 			SPDLOG_ERROR(
@@ -291,7 +288,7 @@ class PostgresConnTrans
 			else
 				transaction->commit();
 		}
-		catch (exception &e)
+		catch (std::exception &e)
 		{
 #ifdef DBCONNECTIONSPOOL_LOG
 			SPDLOG_ERROR(
@@ -313,10 +310,10 @@ class PostgresTransaction
 	bool _abort;
 
   public:
-	unique_ptr<pqxx::transaction_base> transaction;
-	shared_ptr<PostgresConnection> connection;
+	std::unique_ptr<pqxx::transaction_base> transaction;
+	std::shared_ptr<PostgresConnection> connection;
 
-	PostgresTransaction(shared_ptr<PostgresConnection> connection, bool work)
+	PostgresTransaction(std::shared_ptr<PostgresConnection> connection, bool work)
 	{
 #ifdef DBCONNECTIONSPOOL_LOG
 		SPDLOG_DEBUG(
@@ -329,9 +326,9 @@ class PostgresTransaction
 
 		this->connection = connection;
 		if (work)
-			transaction = make_unique<pqxx::work>(*(connection->_sqlConnection));
+			transaction = std::make_unique<pqxx::work>(*(connection->_sqlConnection));
 		else
-			transaction = make_unique<pqxx::nontransaction>(*(connection->_sqlConnection));
+			transaction = std::make_unique<pqxx::nontransaction>(*(connection->_sqlConnection));
 	}
 
 	void setAbort() { _abort = true; }
@@ -352,7 +349,7 @@ class PostgresTransaction
 			else
 				transaction->commit();
 		}
-		catch (exception &e)
+		catch (std::exception &e)
 		{
 #ifdef DBCONNECTIONSPOOL_LOG
 			SPDLOG_ERROR(
@@ -364,4 +361,3 @@ class PostgresTransaction
 		}
 	}
 };
-#endif
