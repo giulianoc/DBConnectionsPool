@@ -26,7 +26,7 @@ class PostgresConnection : public DBConnection
 	~PostgresConnection() override
 	{
 #ifdef DBCONNECTIONSPOOL_LOG
-		SPDLOG_TRACE(
+		LOG_TRACE(
 			"sql connection destruct"
 			", _connectionId: {}",
 			_connectionId
@@ -41,7 +41,7 @@ class PostgresConnection : public DBConnection
 		if (_sqlConnection == nullptr)
 		{
 #ifdef DBCONNECTIONSPOOL_LOG
-			SPDLOG_ERROR(
+			LOG_ERROR(
 				"sql connection is null"
 				", _connectionId: {}",
 				_connectionId
@@ -56,7 +56,7 @@ class PostgresConnection : public DBConnection
 				try
 				{
 #ifdef DBCONNECTIONSPOOL_LOG
-					SPDLOG_TRACE(
+					LOG_TRACE(
 						"sql connection test"
 						", _connectionId: {}"
 						", _selectTestingConnection: {}",
@@ -73,7 +73,7 @@ class PostgresConnection : public DBConnection
 				catch (pqxx::sql_error const &e)
 				{
 #ifdef DBCONNECTIONSPOOL_LOG
-					SPDLOG_ERROR(
+					LOG_ERROR(
 						"sql connection exception"
 						", _connectionId: {}"
 						", hostname: {}"
@@ -88,7 +88,7 @@ class PostgresConnection : public DBConnection
 				catch (pqxx::broken_connection const &e)
 				{
 #ifdef DBCONNECTIONSPOOL_LOG
-					SPDLOG_WARN(
+					LOG_WARN(
 						"sql connection exception"
 						", _connectionId: {}"
 						", elapsed since last activity: {} secs"
@@ -105,7 +105,7 @@ class PostgresConnection : public DBConnection
 				catch (std::exception &e)
 				{
 #ifdef DBCONNECTIONSPOOL_LOG
-					SPDLOG_WARN(
+					LOG_WARN(
 						"sql connection exception"
 						", _connectionId: {}"
 						", hostname: {}"
@@ -165,7 +165,7 @@ class PostgresConnectionFactory : public DBConnectionFactory
 			// port=5432";
 			std::string connectionDetails = std::format("postgresql://{}:{}@{}:{}/{}", _dbUsername, _dbPassword, _dbServer, _dbPort, _dbName);
 #ifdef DBCONNECTIONSPOOL_LOG
-			SPDLOG_TRACE(
+			LOG_TRACE(
 				"sql connection creating..."
 				", _dbServer: {}"
 				", _dbUsername: {}"
@@ -193,13 +193,13 @@ class PostgresConnectionFactory : public DBConnectionFactory
 					", _dbName: {}",
 					postgresConnection->getConnectionId(), _dbServer, _dbUsername, _dbName
 				);
-				SPDLOG_ERROR(errorMessage);
+				LOG_ERROR(errorMessage);
 #endif
 
 				return nullptr;
 			}
 #ifdef DBCONNECTIONSPOOL_LOG
-			SPDLOG_TRACE(
+			LOG_TRACE(
 				"just created sql connection"
 				", _connectionId: {}"
 				", _dbServer: {}"
@@ -215,7 +215,7 @@ class PostgresConnectionFactory : public DBConnectionFactory
 		catch (std::exception &e)
 		{
 #ifdef DBCONNECTIONSPOOL_LOG
-			SPDLOG_ERROR(
+			LOG_ERROR(
 				"sql connection creation failed"
 				", e.what(): {}",
 				e.what()
@@ -240,7 +240,7 @@ class PostgresConnTrans
 	PostgresConnTrans(std::shared_ptr<DBConnectionPool<PostgresConnection>> connectionsPool, bool work)
 	{
 #ifdef DBCONNECTIONSPOOL_LOG
-		SPDLOG_DEBUG(
+		LOG_DEBUG(
 			"Transaction constructor"
 			", work: {}",
 			work
@@ -259,7 +259,7 @@ class PostgresConnTrans
 		catch (std::exception &e)
 		{
 #ifdef DBCONNECTIONSPOOL_LOG
-			SPDLOG_ERROR(
+			LOG_ERROR(
 				"Transaction failed"
 				", connection: {}",
 				(connection != nullptr ? connection->getConnectionId() : -1)
@@ -275,7 +275,7 @@ class PostgresConnTrans
 	~PostgresConnTrans()
 	{
 #ifdef DBCONNECTIONSPOOL_LOG
-		SPDLOG_DEBUG(
+		LOG_DEBUG(
 			"Transaction destructor"
 			", abort: {}",
 			_abort
@@ -291,7 +291,7 @@ class PostgresConnTrans
 		catch (std::exception &e)
 		{
 #ifdef DBCONNECTIONSPOOL_LOG
-			SPDLOG_ERROR(
+			LOG_ERROR(
 				"Transaction abort/commit failed"
 				", abort: {}"
 				", connection: {}",
@@ -316,7 +316,7 @@ class PostgresTransaction
 	PostgresTransaction(std::shared_ptr<PostgresConnection> connection, bool work)
 	{
 #ifdef DBCONNECTIONSPOOL_LOG
-		SPDLOG_DEBUG(
+		LOG_DEBUG(
 			"Transaction constructor"
 			", work: {}",
 			work
@@ -336,7 +336,7 @@ class PostgresTransaction
 	~PostgresTransaction()
 	{
 #ifdef DBCONNECTIONSPOOL_LOG
-		SPDLOG_DEBUG(
+		LOG_DEBUG(
 			"Transaction destructor"
 			", abort: {}",
 			_abort
@@ -352,7 +352,7 @@ class PostgresTransaction
 		catch (std::exception &e)
 		{
 #ifdef DBCONNECTIONSPOOL_LOG
-			SPDLOG_ERROR(
+			LOG_ERROR(
 				"Transaction abort/commit failed"
 				", abort: {}",
 				_abort

@@ -1,5 +1,4 @@
-#ifndef DBConnection_H
-#define DBConnection_H
+#pragma once
 
 #include <deque>
 #include <exception>
@@ -11,9 +10,14 @@
 
 // #define DBCONNECTIONPOOL_LOG
 
+#ifdef DBCONNECTIONPOOL_LOG
+#include "ThreadLogger.h"
+#endif
+
+
 struct ConnectionUnavailable : std::exception
 {
-	char const *what() const throw() { return "Unable to allocate connection"; };
+	char const *what() const throw() override { return "Unable to allocate connection"; };
 };
 
 class DBConnection
@@ -77,7 +81,7 @@ template <class T> class DBConnectionPool
 		_factory = factory;
 
 #ifdef DBCONNECTIONPOOL_LOG
-		SPDLOG_TRACE("building DBConnectionPool");
+		LOG_TRACE("building DBConnectionPool");
 #endif
 
 		int lastConnectionId = 0;
@@ -89,7 +93,7 @@ template <class T> class DBConnectionPool
 // _factory->create(lastConnectionId++); if (sqlConnection != nullptr)
 // 	_connectionPool.push_back(sqlConnection);
 #ifdef DBCONNECTIONPOOL_LOG
-			SPDLOG_TRACE("Creating connection {}", lastConnectionId);
+			LOG_TRACE("Creating connection {}", lastConnectionId);
 #endif
 			_connectionPool.push_back(_factory->create(lastConnectionId++));
 		}
@@ -110,7 +114,7 @@ template <class T> class DBConnectionPool
 	std::shared_ptr<T> borrow()
 	{
 #ifdef DBCONNECTIONPOOL_LOG
-		SPDLOG_TRACE("Received borrow");
+		LOG_TRACE("Received borrow");
 #endif
 
 #ifdef DBCONNECTIONPOOL_STATS_LOG
@@ -127,7 +131,7 @@ template <class T> class DBConnectionPool
 		if (_connectionPool.empty())
 		{
 #ifdef DBCONNECTIONPOOL_LOG
-			SPDLOG_TRACE("_connectionPool.size is 0, look to recover a borrowed one");
+			LOG_TRACE("_connectionPool.size is 0, look to recover a borrowed one");
 #endif
 
 			// Are there any crashed connections listed as "borrowed"?
@@ -143,7 +147,7 @@ template <class T> class DBConnectionPool
 					{
 						// If we are able to create a new connection, return it
 #ifdef DBCONNECTIONPOOL_LOG
-						SPDLOG_TRACE("Creating new connection to replace discarded connection");
+						LOG_TRACE("Creating new connection to replace discarded connection");
 #endif
 
 						int connectionId = (*it)->getConnectionId();
@@ -153,7 +157,7 @@ template <class T> class DBConnectionPool
 						{
 							std::string errorMessage = "sqlConnection is null";
 #ifdef DBCONNECTIONPOOL_LOG
-							SPDLOG_ERROR(errorMessage);
+							LOG_ERROR(errorMessage);
 #endif
 
 							throw std::runtime_error(errorMessage);
@@ -170,7 +174,7 @@ template <class T> class DBConnectionPool
 					{
 						std::string errorMessage = "exception";
 #ifdef DBCONNECTIONPOOL_LOG
-						SPDLOG_ERROR(errorMessage);
+						LOG_ERROR(errorMessage);
 #endif
 
 						// Error creating a replacement connection
@@ -181,7 +185,7 @@ template <class T> class DBConnectionPool
 
 			std::string errorMessage = "No connection available";
 #ifdef DBCONNECTIONPOOL_LOG
-			SPDLOG_ERROR(errorMessage);
+			LOG_ERROR(errorMessage);
 #endif
 
 			// Nothing available
@@ -212,7 +216,7 @@ template <class T> class DBConnectionPool
 		{
 			std::string errorMessage = "sqlConnection is null";
 #ifdef DBCONNECTIONPOOL_LOG
-			SPDLOG_ERROR(errorMessage);
+			LOG_ERROR(errorMessage);
 #endif
 
 			throw std::runtime_error(errorMessage);
@@ -227,7 +231,7 @@ template <class T> class DBConnectionPool
 		if (!connectionValid)
 		{
 #ifdef DBCONNECTIONPOOL_LOG
-			SPDLOG_WARN(
+			LOG_WARN(
 				"sqlConnection is null or is not valid"
 				", connectionValid: {}",
 				connectionValid
@@ -251,7 +255,7 @@ template <class T> class DBConnectionPool
 
 					std::string errorMessage = "sqlConnection is null";
 #ifdef DBCONNECTIONPOOL_LOG
-					SPDLOG_ERROR(errorMessage);
+					LOG_ERROR(errorMessage);
 #endif
 
 					throw std::runtime_error(errorMessage);
@@ -260,7 +264,7 @@ template <class T> class DBConnectionPool
 			catch (std::runtime_error &e)
 			{
 #ifdef DBCONNECTIONPOOL_LOG
-				SPDLOG_ERROR(
+				LOG_ERROR(
 					"sql connection creation failed"
 					", e.what(): {}",
 					e.what()
@@ -286,7 +290,7 @@ template <class T> class DBConnectionPool
 			catch (std::exception &e)
 			{
 #ifdef DBCONNECTIONPOOL_LOG
-				SPDLOG_ERROR(
+				LOG_ERROR(
 					"sql connection creation failed"
 					", e.what(): {}",
 					e.what()
@@ -321,7 +325,7 @@ template <class T> class DBConnectionPool
 #endif
 
 #ifdef DBCONNECTIONPOOL_LOG
-		SPDLOG_TRACE(
+		LOG_TRACE(
 			"borrow"
 			", connectionId: {}",
 			sqlConnection->getConnectionId()
@@ -329,7 +333,7 @@ template <class T> class DBConnectionPool
 #endif
 #ifdef DBCONNECTIONPOOL_STATS_LOG
 		chrono::system_clock::time_point borrowEnd = chrono::system_clock::now();
-		SPDLOG_INFO(
+		LOG_INFO(
 			"borrow elapsed"
 			", locker: {}"
 			", sizeZero: {}"
@@ -364,7 +368,7 @@ template <class T> class DBConnectionPool
 		{
 			std::string errorMessage = "sqlConnection is null";
 #ifdef DBCONNECTIONPOOL_LOG
-			SPDLOG_ERROR(errorMessage);
+			LOG_ERROR(errorMessage);
 #endif
 
 			throw std::runtime_error(errorMessage);
@@ -379,7 +383,7 @@ template <class T> class DBConnectionPool
 		_connectionBorrowed.erase(sqlConnection);
 
 #ifdef DBCONNECTIONPOOL_LOG
-		SPDLOG_TRACE(
+		LOG_TRACE(
 			"unborrow"
 			", connectionId: {}",
 			sqlConnection->getConnectionId()
@@ -399,5 +403,3 @@ template <class T> class DBConnectionPool
 		return stats;
 	};
 };
-
-#endif

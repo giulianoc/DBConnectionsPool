@@ -29,7 +29,7 @@ public:
   ~MySQLConnection() {
     if (_sqlConnection) {
 #ifdef DBCONNECTIONPOOL_LOG
-      SPDLOG_TRACE("sql connection destruct"
+      LOG_TRACE("sql connection destruct"
                    ", _connectionId: {}",
                    _connectionId);
 #endif
@@ -44,7 +44,7 @@ public:
 
     if (_sqlConnection == nullptr) {
 #ifdef DBCONNECTIONPOOL_LOG
-      SPDLOG_ERROR("sql connection is null"
+      LOG_ERROR("sql connection is null"
                    ", _connectionId: {}",
                    _connectionId);
 #endif
@@ -63,7 +63,7 @@ public:
           }
         } catch (sql::SQLException &se) {
 #ifdef DBCONNECTIONPOOL_LOG
-          SPDLOG_ERROR("sql connection exception"
+          LOG_ERROR("sql connection exception"
                        ", _connectionId: {}"
                        ", se.what(): {}",
                        _connectionId, se.what());
@@ -72,7 +72,7 @@ public:
           connectionValid = false;
         } catch (exception &e) {
 #ifdef DBCONNECTIONPOOL_LOG
-          SPDLOG_ERROR("sql connection exception"
+          LOG_ERROR("sql connection exception"
                        ", _connectionId: {}"
                        ", e.what(): {}",
                        _connectionId, e.what());
@@ -128,7 +128,7 @@ public:
       connection_properties["OPT_CHARSET_NAME"] = _defaultCharacterSet;
 
 #ifdef DBCONNECTIONPOOL_LOG
-      SPDLOG_TRACE("sql connection creating..."
+      LOG_TRACE("sql connection creating..."
                    ", _dbServer: {}"
                    ", _dbUsername: {}"
                    ", _dbPassword: {}"
@@ -164,13 +164,13 @@ public:
                         ", _dbName: {}",
                         mySqlConnection->getConnectionId(), _dbServer,
                         _dbUsername, _dbName);
-        SPDLOG_ERROR(errorMessage);
+        LOG_ERROR(errorMessage);
 #endif
 
         return nullptr;
       } else {
 #ifdef DBCONNECTIONPOOL_LOG
-        SPDLOG_TRACE("just created sql connection"
+        LOG_TRACE("just created sql connection"
                      ", _connectionId: {}"
                      ", _dbServer: {}"
                      ", _dbUsername: {}"
@@ -183,7 +183,7 @@ public:
       return static_pointer_cast<DBConnection>(mySqlConnection);
     } catch (sql::SQLException &se) {
 #ifdef DBCONNECTIONPOOL_LOG
-      SPDLOG_ERROR("sql connection creation failed"
+      LOG_ERROR("sql connection creation failed"
                    ", se.what(): {}",
                    se.what());
 #endif
@@ -191,7 +191,7 @@ public:
       throw runtime_error(se.what());
     } catch (runtime_error &e) {
 #ifdef DBCONNECTIONPOOL_LOG
-      SPDLOG_ERROR("sql connection creation failed"
+      LOG_ERROR("sql connection creation failed"
                    ", e.what(): {}",
                    e.what());
 #endif
@@ -199,7 +199,7 @@ public:
       throw e;
     } catch (exception &e) {
 #ifdef DBCONNECTIONPOOL_LOG
-      SPDLOG_ERROR("sql connection creation failed"
+      LOG_ERROR("sql connection creation failed"
                    ", e.what(): {}",
                    e.what());
 #endif
