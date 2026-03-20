@@ -30,7 +30,9 @@ endif()
 
 if(ZORAC)
 else()
-	install (FILES ${HEADERS} DESTINATION include)
+	if(NOT DEFINED DBCONN_INSTALL_HEADERS OR DBCONN_INSTALL_HEADERS)
+		install(FILES ${HEADERS} DESTINATION include)
+	endif()
 endif()
 
 
