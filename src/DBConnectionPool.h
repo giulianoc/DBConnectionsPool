@@ -17,7 +17,7 @@
 
 struct ConnectionUnavailable : std::exception
 {
-	char const *what() const throw() override { return "Unable to allocate connection"; };
+	[[nodiscard]] char const *what() const noexcept override { return "Unable to allocate connection"; };
 };
 
 class DBConnection
@@ -135,7 +135,7 @@ template <class T> class DBConnectionPool
 #endif
 
 			// Are there any crashed connections listed as "borrowed"?
-			for (std::set<std::shared_ptr<DBConnection>>::iterator it = _connectionBorrowed.begin(); it != _connectionBorrowed.end(); ++it)
+			for (auto it = _connectionBorrowed.begin(); it != _connectionBorrowed.end(); ++it)
 			{
 				// generally use_count is 2, one because of borrowed
 				// set and one because it is used for sql statements.
@@ -396,7 +396,7 @@ template <class T> class DBConnectionPool
 		std::lock_guard<std::mutex> locker(_connectionPoolMutex);
 
 		// Get stats
-		DBConnectionPoolStats stats;
+		DBConnectionPoolStats stats{};
 		stats._poolSize = _connectionPool.size();
 		stats._borrowedSize = _connectionBorrowed.size();
 

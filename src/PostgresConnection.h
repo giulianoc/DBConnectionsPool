@@ -21,7 +21,7 @@ class PostgresConnection : public DBConnection
 					}
 	*/
 
-	PostgresConnection(std::string selectTestingConnection, int connectionId) : DBConnection(selectTestingConnection, connectionId) {}
+	PostgresConnection(const std::string& selectTestingConnection, int connectionId) : DBConnection(selectTestingConnection, connectionId) {}
 
 	~PostgresConnection() override
 	{
@@ -139,9 +139,9 @@ class PostgresConnectionFactory : public DBConnectionFactory
 
   public:
 	PostgresConnectionFactory(
-		const std::string &dbServer, const std::string &dbUsername, int dbPort, const std::string &dbPassword, const std::string &dbName,
+		const std::string &dbServer, const std::string &dbUsername, const int dbPort, const std::string &dbPassword, const std::string &dbName,
 		/* bool reconnect, std::string defaultCharacterSet, */
-		std::string selectTestingConnection
+		const std::string &selectTestingConnection
 	)
 	{
 		_dbServer = dbServer;
@@ -163,7 +163,8 @@ class PostgresConnectionFactory : public DBConnectionFactory
 			// std::string connectionDetails = "dbname=" + _dbName + " user=" + _dbUsername
 			// 	+ " password=" + _dbPassword + " hostaddr=" + _dbServer + "
 			// port=5432";
-			std::string connectionDetails = std::format("postgresql://{}:{}@{}:{}/{}", _dbUsername, _dbPassword, _dbServer, _dbPort, _dbName);
+			std::string connectionDetails = std::format("postgresql://{}:{}@{}:{}/{}",
+				_dbUsername, _dbPassword, _dbServer, _dbPort, _dbName);
 #ifdef DBCONNECTIONSPOOL_LOG
 			LOG_TRACE(
 				"sql connection creating..."
@@ -176,7 +177,7 @@ class PostgresConnectionFactory : public DBConnectionFactory
 			);
 			// connectionDetails);
 #endif
-			std::shared_ptr<pqxx::connection> conn = make_shared<pqxx::connection>(connectionDetails);
+			const std::shared_ptr<pqxx::connection> conn = make_shared<pqxx::connection>(connectionDetails);
 
 			std::shared_ptr<PostgresConnection> postgresConnection = make_shared<PostgresConnection>(_selectTestingConnection, connectionId);
 			postgresConnection->_sqlConnection = conn;
@@ -237,7 +238,7 @@ class PostgresConnTrans
 	std::unique_ptr<pqxx::transaction_base> transaction;
 	std::shared_ptr<PostgresConnection> connection;
 
-	PostgresConnTrans(std::shared_ptr<DBConnectionPool<PostgresConnection>> connectionsPool, bool work)
+	PostgresConnTrans(const std::shared_ptr<DBConnectionPool<PostgresConnection>>& connectionsPool, bool work)
 	{
 #ifdef DBCONNECTIONSPOOL_LOG
 		LOG_DEBUG(
@@ -313,7 +314,7 @@ class PostgresTransaction
 	std::unique_ptr<pqxx::transaction_base> transaction;
 	std::shared_ptr<PostgresConnection> connection;
 
-	PostgresTransaction(std::shared_ptr<PostgresConnection> connection, bool work)
+	PostgresTransaction(const std::shared_ptr<PostgresConnection>& connection, bool work)
 	{
 #ifdef DBCONNECTIONSPOOL_LOG
 		LOG_DEBUG(
